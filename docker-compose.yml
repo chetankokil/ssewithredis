@@ -1,0 +1,39 @@
+version: "3.6"
+services:
+  redis:
+    image: redis:alpine
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    container_name: ck-redis
+    restart: always
+    networks:
+      - demo-netowrk
+    ports:
+      - 6379:6379
+  app:
+    restart: always
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    container_name: ck-app
+    build: .
+    volumes:
+      - .:/app
+      - ~/.m2:/root/.m2
+    working_dir: /app
+    networks:
+      - demo-netowrk
+    expose:
+      - "8080"
+    ports:
+      - 8080:8080
+    depends_on:
+      - redis
+    command: mvn clean spring-boot:run
+
+networks:
+  demo-netowrk:
+    name: demo-network
